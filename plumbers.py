@@ -9,6 +9,9 @@ clock = pygame.time.Clock()
 BLUE = (135, 206, 235)
 GREEN = (34, 139, 34)
 
+# ----------------------
+# Homer sprite
+# ----------------------
 homer_img = pygame.image.load("homer.png").convert_alpha()
 homer_img = pygame.transform.scale(homer_img, (60, 60))
 
@@ -22,14 +25,18 @@ gravity = 0.6
 jump_strength = -12
 on_ground = False
 
-## mThe bushes platforms
+# ----------------------
+# Bush platforms
+# ----------------------
 platforms = [
-    pygame.Rect(0, 550, 800, 50),     
+    pygame.Rect(0, 550, 800, 50),
     pygame.Rect(200, 450, 150, 20),
     pygame.Rect(450, 380, 150, 20),
 ]
 
-# Donut ("collectible coins")
+# ----------------------
+# Donut collectibles
+# ----------------------
 donut_img = pygame.image.load("donut.png").convert_alpha()
 donut_img = pygame.transform.scale(donut_img, (40, 40))
 
@@ -41,10 +48,19 @@ donuts = [
     pygame.Rect(700, 510, 40, 40)
 ]
 
-font = pygame.font.SysFont(None, 60)
+total_donuts = len(donuts)
+
+# ----------------------
+# Fonts
+# ----------------------
+score_font = pygame.font.SysFont(None, 32)   # small corner text
+win_font = pygame.font.SysFont(None, 80)     # big win message
+
 win = False
 
-
+# ----------------------
+# Game Loop
+# ----------------------
 while True:
 
     for event in pygame.event.get():
@@ -54,18 +70,22 @@ while True:
 
     keys = pygame.key.get_pressed()
 
+    # Movement
     if keys[pygame.K_LEFT]:
         player_rect.x -= player_speed
     if keys[pygame.K_RIGHT]:
         player_rect.x += player_speed
 
+    # Jump
     if keys[pygame.K_SPACE] and on_ground:
         y_velocity = jump_strength
         on_ground = False
 
+    # Gravity
     y_velocity += gravity
     player_rect.y += y_velocity
 
+    # Platform collision
     on_ground = False
     for platform in platforms:
         if player_rect.colliderect(platform) and y_velocity >= 0:
@@ -73,26 +93,40 @@ while True:
             y_velocity = 0
             on_ground = True
 
+    # Collect donuts
     for donut in list(donuts):
         if player_rect.colliderect(donut):
             donuts.remove(donut)
 
+    # Check win
     if len(donuts) == 0:
         win = True
 
+    # ----------------------
+    # Drawing
+    # ----------------------
     screen.fill(BLUE)
 
+    # Platforms
     for platform in platforms:
         pygame.draw.rect(screen, GREEN, platform)
 
+    # Donuts
     for donut in donuts:
         screen.blit(donut_img, donut)
 
+    # Homer
     screen.blit(homer_img, player_rect)
 
+    # Donut counter
+    collected = total_donuts - len(donuts)
+    score_text = score_font.render(f"Donuts: {collected}/{total_donuts}", True, (0,0,0))
+    screen.blit(score_text, (10, 10))
+
+    # Win message
     if win:
-        text = font.render("YOU WIN!", True, (255, 255, 0))
-        screen.blit(text, (300, 200))
+        text = win_font.render("YOU WIN!", True, (255, 255, 0))
+        screen.blit(text, (260, 200))
 
     pygame.display.flip()
     clock.tick(60)
